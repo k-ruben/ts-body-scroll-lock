@@ -32,7 +32,7 @@ var lockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
     addStyleOverride(html, lockStyleHTML);
-    addStyleOverride(body, lockStyleBody, addDynamicStyleOverride());
+    addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
 };
 exports.lockBodyScroll = lockBodyScroll;
 var getLockContentScrollResizeObserver = function () {
@@ -66,7 +66,7 @@ var unlockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
     removeStyleOverride(html, lockStyleHTML);
-    removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyleBody), true);
+    removeStyleOverride(body, lockStyleBody, getDynamicStyleOverrideToRemove(body), true);
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);
@@ -81,44 +81,51 @@ var unlockScrollElement = function (element) {
         element.removeEventListener("touchmove", preventTouchmoveHandler);
     }
 };
-var addDynamicStyleOverride = function () {
+var getDynamicStyleOverride = function () {
     if (window.scrollY > 0) {
         return "position:fixed;top:-".concat(window.scrollY, "px;");
     }
     return "position:fixed;top:0px;";
 };
-var addDynamicStyleOverrideToRemove = function (element, styleOverride) {
-    return "".concat(styleOverride, "position:fixed;top:").concat(element.style.top, ";");
+var getDynamicStyleOverrideToRemove = function (element) {
+    return "position:fixed;top:".concat(element.style.top, ";");
 };
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
-    var currentStyle = element.getAttribute("style");
-    if (currentStyle === "" || currentStyle === null) {
-        element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
-        return;
-    }
-    if (currentStyle.indexOf(styleOverride) > -1) {
-        return;
-    }
-    element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
+    window.requestAnimationFrame(function () {
+        var currentStyle = element.getAttribute("style");
+        if (currentStyle === "" || currentStyle === null) {
+            element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
+            return;
+        }
+        if (currentStyle.indexOf(styleOverride) > -1) {
+            return;
+        }
+        element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
+    });
 };
-var removeStyleOverride = function (element, styleOverride, restoreScrollPosition) {
+var removeStyleOverride = function (element, styleOverride, dynamicStyleOverride, restoreScrollPosition) {
+    if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ""; }
     if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
     }
-    var scrollPosition = Number(element.style.top.replace('px', '')) * -1;
-    var newStyle = currentStyle.replace(new RegExp(styleOverride + "$"), "");
-    if (newStyle === "") {
-        element.removeAttribute("style");
-    }
-    else {
-        element.setAttribute("style", newStyle);
-    }
-    if (restoreScrollPosition) {
-        window.scrollTo(0, scrollPosition);
-    }
+    window.requestAnimationFrame(function () {
+        var scrollPosition = Number(element.style.top.replace("px", "")) * -1;
+        var newStyle = currentStyle.replace(new RegExp("".concat(styleOverride).concat(dynamicStyleOverride) + "$"), "");
+        if (newStyle === "") {
+            console.log('remove style');
+            element.removeAttribute("style");
+        }
+        else {
+            console.log('remove style, keep unrelated style');
+            element.setAttribute("style", newStyle);
+        }
+        if (restoreScrollPosition) {
+            window.scrollTo(0, scrollPosition);
+        }
+    });
 };
 var registerLockIdOnBody = function (id) {
     var body = getBody();

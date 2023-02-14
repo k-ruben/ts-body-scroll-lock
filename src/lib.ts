@@ -45,7 +45,7 @@ export const lockBodyScroll = () => {
   const body = getBody();
 
   addStyleOverride(html, lockStyleHTML);
-  addStyleOverride(body, lockStyleBody, addDynamicStyleOverride());
+  addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
 };
 
 export const getLockContentScrollResizeObserver = (): ResizeObserver | null => {
@@ -90,7 +90,7 @@ const unlockBodyScroll = () => {
   const body = getBody();
 
   removeStyleOverride(html, lockStyleHTML);
-  removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyleBody), true);
+  removeStyleOverride(body, lockStyleBody, getDynamicStyleOverrideToRemove(body), true);
 };
 
 const lockScrollElement = (element: HTMLElement) => {
@@ -110,55 +110,60 @@ const unlockScrollElement = (element: HTMLElement) => {
   }
 };
 
-const addDynamicStyleOverride = (): string => {
+const getDynamicStyleOverride = (): string => {
   if (window.scrollY > 0) {
     return `position:fixed;top:-${window.scrollY}px;`;
   }
   return `position:fixed;top:0px;`;
 }
 
-const addDynamicStyleOverrideToRemove = (element: HTMLElement, styleOverride: string): string => {
-  return `${styleOverride}position:fixed;top:${element.style.top};`;
+const getDynamicStyleOverrideToRemove = (element: HTMLElement): string => {
+  return `position:fixed;top:${element.style.top};`;
 }
 
 /**
  * Inline Style handler
  */
 const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
-  const currentStyle = element.getAttribute("style");
+  window.requestAnimationFrame(() => {
+    const currentStyle = element.getAttribute("style");
 
-  if (currentStyle === "" || currentStyle === null) {
-    element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
-    return;
-  }
+    if (currentStyle === "" || currentStyle === null) {
+      element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
+      return;
+    }
 
-  if (currentStyle.indexOf(styleOverride) > -1) {
-    return;
-  }
+    if (currentStyle.indexOf(styleOverride) > -1) {
+      return;
+    }
 
-  element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
+    element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
+  })
 };
 
-const removeStyleOverride = (element: HTMLElement, styleOverride: string, restoreScrollPosition = false) => {
+const removeStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = "", restoreScrollPosition = false) => {
   const currentStyle = element.getAttribute("style");
   if (currentStyle == null) {
     return;
   }
 
-  // this is more complicated than it could be, but it makes sure we do not override user-defined inline styles
-  const scrollPosition = Number(element.style.top.replace('px', '')) * -1;
-  const newStyle = currentStyle.replace(new RegExp(styleOverride + "$"), "");
+  window.requestAnimationFrame(() => {
+    // this is more complicated than it could be, but it makes sure we do not override user-defined inline styles
+    const scrollPosition = Number(element.style.top.replace("px", "")) * -1;
+    const newStyle = currentStyle.replace(new RegExp(`${styleOverride}${dynamicStyleOverride}` + "$"), "");
+    if (newStyle === "") {
+      console.log('remove style');
+      element.removeAttribute("style");
+    }
+    else {
+      console.log('remove style, keep unrelated style')
+      element.setAttribute("style", newStyle);
+    }
 
-  if (newStyle === "") {
-    element.removeAttribute("style");
-  }
-  else {
-    element.setAttribute("style", newStyle);
-  }
-
-  if (restoreScrollPosition) {
-    window.scrollTo(0, scrollPosition);
-  }
+    if (restoreScrollPosition) {
+      window.scrollTo(0, scrollPosition);
+    }
+  })
 };
 
 /**
