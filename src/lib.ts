@@ -68,7 +68,8 @@ export const lockContentScrollElement = (
   containerElement: HTMLElement,
   scrollContentElement: HTMLElement
 ) => {
-  const containerHeight = containerElement.getBoundingClientRect().height;
+  const computerContainerStyle = getComputedStyle(containerElement);
+  const containerHeight = containerElement.getBoundingClientRect().height - parseFloat(computerContainerStyle.paddingTop) - parseFloat(computerContainerStyle.paddingBottom);
   const contentHeight = scrollContentElement.getBoundingClientRect().height;
   // also get children height as contentHeight might be set to 100% and is scrollable
   const contentChildrenHeight = getChildNodesHeight(
