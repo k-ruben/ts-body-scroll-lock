@@ -82,12 +82,12 @@ System.register("lib", [], function (exports_1, context_1) {
             };
             getDynamicStyleOverride = () => {
                 if (window.scrollY > 0) {
-                    return `top:-${window.scrollY}px;`;
+                    return `margin-top:-${window.scrollY}px;`;
                 }
-                return `top:0px;`;
+                return `margin-top:0px;`;
             };
             getDynamicStyleOverrideToRemove = (element) => {
-                return `top:${element.style.top};`;
+                return `margin-top:${element.style.marginTop};`;
             };
             addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
                 window.requestAnimationFrame(() => {
@@ -108,7 +108,7 @@ System.register("lib", [], function (exports_1, context_1) {
                     return;
                 }
                 window.requestAnimationFrame(() => {
-                    const scrollPosition = Number(element.style.top.replace("px", "")) * -1;
+                    const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
                     const newStyle = currentStyle.replace(new RegExp(`${styleOverride}${dynamicStyleOverride}` + "$"), "");
                     if (newStyle === "") {
                         console.log('remove style');

@@ -112,13 +112,13 @@ const unlockScrollElement = (element: HTMLElement) => {
 
 const getDynamicStyleOverride = (): string => {
   if (window.scrollY > 0) {
-    return `top:-${window.scrollY}px;`;
+    return `margin-top:-${window.scrollY}px;`;
   }
-  return `top:0px;`;
+  return `margin-top:0px;`;
 }
 
 const getDynamicStyleOverrideToRemove = (element: HTMLElement): string => {
-  return `top:${element.style.top};`;
+  return `margin-top:${element.style.marginTop};`;
 }
 
 /**
@@ -149,7 +149,7 @@ const removeStyleOverride = (element: HTMLElement, styleOverride: string, dynami
 
   window.requestAnimationFrame(() => {
     // this is more complicated than it could be, but it makes sure we do not override user-defined inline styles
-    const scrollPosition = Number(element.style.top.replace("px", "")) * -1;
+    const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
     const newStyle = currentStyle.replace(new RegExp(`${styleOverride}${dynamicStyleOverride}` + "$"), "");
     if (newStyle === "") {
       console.log('remove style');

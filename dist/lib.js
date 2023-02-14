@@ -83,12 +83,12 @@ var unlockScrollElement = function (element) {
 };
 var getDynamicStyleOverride = function () {
     if (window.scrollY > 0) {
-        return "top:-".concat(window.scrollY, "px;");
+        return "margin-top:-".concat(window.scrollY, "px;");
     }
-    return "top:0px;";
+    return "margin-top:0px;";
 };
 var getDynamicStyleOverrideToRemove = function (element) {
-    return "top:".concat(element.style.top, ";");
+    return "margin-top:".concat(element.style.marginTop, ";");
 };
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
@@ -112,7 +112,7 @@ var removeStyleOverride = function (element, styleOverride, dynamicStyleOverride
         return;
     }
     window.requestAnimationFrame(function () {
-        var scrollPosition = Number(element.style.top.replace("px", "")) * -1;
+        var scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
         var newStyle = currentStyle.replace(new RegExp("".concat(styleOverride).concat(dynamicStyleOverride) + "$"), "");
         if (newStyle === "") {
             console.log('remove style');
