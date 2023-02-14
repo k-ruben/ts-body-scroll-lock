@@ -31,7 +31,7 @@ var lockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
     addStyleOverride(html, lockStyle);
-    addStyleOverride(body, lockStyle);
+    addStyleOverride(body, lockStyle, addDynamicStyleOverride());
 };
 exports.lockBodyScroll = lockBodyScroll;
 var getLockContentScrollResizeObserver = function () {
@@ -64,7 +64,7 @@ var unlockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
     removeStyleOverride(html, lockStyle);
-    removeStyleOverride(body, lockStyle);
+    removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyle), true);
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);
@@ -79,26 +79,44 @@ var unlockScrollElement = function (element) {
         element.removeEventListener("touchmove", preventTouchmoveHandler);
     }
 };
-var addStyleOverride = function (element, styleOverride) {
+var addDynamicStyleOverride = function () {
+    if (window.scrollY > 0) {
+        return "position:fixed;top:-".concat(window.scrollY, "px;");
+    }
+    return "position:fixed;top:0px;";
+};
+var addDynamicStyleOverrideToRemove = function (element, styleOverride) {
+    return "".concat(styleOverride, "position:fixed;top:").concat(element.style.top, ";");
+};
+var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
+    if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
     var currentStyle = element.getAttribute("style");
-    if (currentStyle === null) {
-        return element.setAttribute("style", styleOverride);
+    if (currentStyle === "" || currentStyle === null) {
+        element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
+        return;
     }
     if (currentStyle.indexOf(styleOverride) > -1) {
         return;
     }
-    return element.setAttribute("style", "".concat(currentStyle).concat(styleOverride));
+    element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
 };
-var removeStyleOverride = function (element, styleOverride) {
+var removeStyleOverride = function (element, styleOverride, restoreScrollPosition) {
+    if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
     }
+    var scrollPosition = Number(element.style.top.replace('px', '')) * -1;
     var newStyle = currentStyle.replace(new RegExp(styleOverride + "$"), "");
     if (newStyle === "") {
-        return element.removeAttribute("style");
+        element.removeAttribute("style");
     }
-    return element.setAttribute("style", newStyle);
+    else {
+        element.setAttribute("style", newStyle);
+    }
+    if (restoreScrollPosition) {
+        window.scrollTo(0, scrollPosition);
+    }
 };
 var registerLockIdOnBody = function (id) {
     var body = getBody();

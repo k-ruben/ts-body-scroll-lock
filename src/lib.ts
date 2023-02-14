@@ -44,7 +44,7 @@ export const lockBodyScroll = () => {
   const body = getBody();
 
   addStyleOverride(html, lockStyle);
-  addStyleOverride(body, lockStyle);
+  addStyleOverride(body, lockStyle, addDynamicStyleOverride());
 };
 
 export const getLockContentScrollResizeObserver = (): ResizeObserver | null => {
@@ -88,7 +88,7 @@ const unlockBodyScroll = () => {
   const body = getBody();
 
   removeStyleOverride(html, lockStyle);
-  removeStyleOverride(body, lockStyle);
+  removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyle), true);
 };
 
 const lockScrollElement = (element: HTMLElement) => {
@@ -108,31 +108,55 @@ const unlockScrollElement = (element: HTMLElement) => {
   }
 };
 
+const addDynamicStyleOverride = (): string => {
+  if (window.scrollY > 0) {
+    return `position:fixed;top:-${window.scrollY}px;`;
+  }
+  return `position:fixed;top:0px;`;
+}
+
+const addDynamicStyleOverrideToRemove = (element: HTMLElement, styleOverride: string): string => {
+  return `${styleOverride}position:fixed;top:${element.style.top};`;
+}
+
 /**
  * Inline Style handler
  */
-const addStyleOverride = (element: HTMLElement, styleOverride: string) => {
+const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
   const currentStyle = element.getAttribute("style");
-  if (currentStyle === null) {
-    return element.setAttribute("style", styleOverride);
+
+  if (currentStyle === "" || currentStyle === null) {
+    element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
+    return;
   }
+
   if (currentStyle.indexOf(styleOverride) > -1) {
     return;
   }
-  return element.setAttribute("style", `${currentStyle}${styleOverride}`);
+
+  element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
 };
 
-const removeStyleOverride = (element: HTMLElement, styleOverride: string) => {
+const removeStyleOverride = (element: HTMLElement, styleOverride: string, restoreScrollPosition = false) => {
   const currentStyle = element.getAttribute("style");
   if (currentStyle == null) {
     return;
   }
-  // this is more complicated than it could be but it makes sure we do not override user-defined inline styles
+
+  // this is more complicated than it could be, but it makes sure we do not override user-defined inline styles
+  const scrollPosition = Number(element.style.top.replace('px', '')) * -1;
   const newStyle = currentStyle.replace(new RegExp(styleOverride + "$"), "");
+
   if (newStyle === "") {
-    return element.removeAttribute("style");
+    element.removeAttribute("style");
   }
-  return element.setAttribute("style", newStyle);
+  else {
+    element.setAttribute("style", newStyle);
+  }
+
+  if (restoreScrollPosition) {
+    window.scrollTo(0, scrollPosition);
+  }
 };
 
 /**

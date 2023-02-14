@@ -1,6 +1,6 @@
 System.register("lib", [], function (exports_1, context_1) {
     "use strict";
-    var bodyDatasetName, elementDatasetName, lockStyle, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
+    var bodyDatasetName, elementDatasetName, lockStyle, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, addDynamicStyleOverride, addDynamicStyleOverrideToRemove, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [],
@@ -33,7 +33,7 @@ System.register("lib", [], function (exports_1, context_1) {
                 const html = getHtml();
                 const body = getBody();
                 addStyleOverride(html, lockStyle);
-                addStyleOverride(body, lockStyle);
+                addStyleOverride(body, lockStyle, addDynamicStyleOverride());
             });
             exports_1("getLockContentScrollResizeObserver", getLockContentScrollResizeObserver = () => {
                 if (!document) {
@@ -63,7 +63,7 @@ System.register("lib", [], function (exports_1, context_1) {
                 const html = getHtml();
                 const body = getBody();
                 removeStyleOverride(html, lockStyle);
-                removeStyleOverride(body, lockStyle);
+                removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyle), true);
             };
             lockScrollElement = (element) => {
                 addStyleOverride(element, scrollYContentLockStyle);
@@ -78,26 +78,42 @@ System.register("lib", [], function (exports_1, context_1) {
                     element.removeEventListener("touchmove", preventTouchmoveHandler);
                 }
             };
-            addStyleOverride = (element, styleOverride) => {
+            addDynamicStyleOverride = () => {
+                if (window.scrollY > 0) {
+                    return `position:fixed;top:-${window.scrollY}px;`;
+                }
+                return `position:fixed;top:0px;`;
+            };
+            addDynamicStyleOverrideToRemove = (element, styleOverride) => {
+                return `${styleOverride}position:fixed;top:${element.style.top};`;
+            };
+            addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
                 const currentStyle = element.getAttribute("style");
-                if (currentStyle === null) {
-                    return element.setAttribute("style", styleOverride);
+                if (currentStyle === "" || currentStyle === null) {
+                    element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
+                    return;
                 }
                 if (currentStyle.indexOf(styleOverride) > -1) {
                     return;
                 }
-                return element.setAttribute("style", `${currentStyle}${styleOverride}`);
+                element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
             };
-            removeStyleOverride = (element, styleOverride) => {
+            removeStyleOverride = (element, styleOverride, restoreScrollPosition = false) => {
                 const currentStyle = element.getAttribute("style");
                 if (currentStyle == null) {
                     return;
                 }
+                const scrollPosition = Number(element.style.top.replace('px', '')) * -1;
                 const newStyle = currentStyle.replace(new RegExp(styleOverride + "$"), "");
                 if (newStyle === "") {
-                    return element.removeAttribute("style");
+                    element.removeAttribute("style");
                 }
-                return element.setAttribute("style", newStyle);
+                else {
+                    element.setAttribute("style", newStyle);
+                }
+                if (restoreScrollPosition) {
+                    window.scrollTo(0, scrollPosition);
+                }
             };
             exports_1("registerLockIdOnBody", registerLockIdOnBody = (id) => {
                 const body = getBody();
