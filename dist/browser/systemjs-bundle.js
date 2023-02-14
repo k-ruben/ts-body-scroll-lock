@@ -52,7 +52,8 @@ System.register("lib", [], function (exports_1, context_1) {
                 });
             });
             exports_1("lockContentScrollElement", lockContentScrollElement = (containerElement, scrollContentElement) => {
-                const containerHeight = containerElement.getBoundingClientRect().height;
+                const computerContainerStyle = getComputedStyle(containerElement);
+                const containerHeight = containerElement.getBoundingClientRect().height - parseFloat(computerContainerStyle.paddingTop) - parseFloat(computerContainerStyle.paddingBottom);
                 const contentHeight = scrollContentElement.getBoundingClientRect().height;
                 const contentChildrenHeight = getChildNodesHeight(scrollContentElement.children);
                 if (containerHeight >= contentHeight &&

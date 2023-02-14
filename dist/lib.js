@@ -52,7 +52,8 @@ var getLockContentScrollResizeObserver = function () {
 };
 exports.getLockContentScrollResizeObserver = getLockContentScrollResizeObserver;
 var lockContentScrollElement = function (containerElement, scrollContentElement) {
-    var containerHeight = containerElement.getBoundingClientRect().height;
+    var computerContainerStyle = getComputedStyle(containerElement);
+    var containerHeight = containerElement.getBoundingClientRect().height - parseFloat(computerContainerStyle.paddingTop) - parseFloat(computerContainerStyle.paddingBottom);
     var contentHeight = scrollContentElement.getBoundingClientRect().height;
     var contentChildrenHeight = getChildNodesHeight(scrollContentElement.children);
     if (containerHeight >= contentHeight &&
