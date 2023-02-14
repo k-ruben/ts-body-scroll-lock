@@ -1,14 +1,14 @@
 System.register("lib", [], function (exports_1, context_1) {
     "use strict";
-    var bodyDatasetName, elementDatasetName, lockStyleHTML, lockStyleBody, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, getDynamicStyleOverride, getDynamicStyleOverrideToRemove, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
+    var bodyDatasetName, elementDatasetName, styleBackupDatasetName, lockStyle, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [],
         execute: function () {
             bodyDatasetName = "tsslock";
             elementDatasetName = "tsslockid";
-            lockStyleHTML = ";overflow:hidden!important;";
-            lockStyleBody = ";position:fixed;";
+            styleBackupDatasetName = "tsslockstyle";
+            lockStyle = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
             scrollYContentLockStyle = ";overflow-y:unset!important;";
             exports_1("removeAllScrollLocks", removeAllScrollLocks = (observer) => {
                 getAllLockedElements().forEach((element) => {
@@ -33,8 +33,8 @@ System.register("lib", [], function (exports_1, context_1) {
             exports_1("lockBodyScroll", lockBodyScroll = () => {
                 const html = getHtml();
                 const body = getBody();
-                addStyleOverride(html, lockStyleHTML);
-                addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+                addStyleOverride(html, lockStyle);
+                addStyleOverride(body, lockStyle);
             });
             exports_1("getLockContentScrollResizeObserver", getLockContentScrollResizeObserver = () => {
                 if (!document) {
@@ -52,8 +52,7 @@ System.register("lib", [], function (exports_1, context_1) {
                 });
             });
             exports_1("lockContentScrollElement", lockContentScrollElement = (containerElement, scrollContentElement) => {
-                const computerContainerStyle = getComputedStyle(containerElement);
-                const containerHeight = containerElement.getBoundingClientRect().height - parseFloat(computerContainerStyle.paddingTop) - parseFloat(computerContainerStyle.paddingBottom);
+                const containerHeight = containerElement.getBoundingClientRect().height;
                 const contentHeight = scrollContentElement.getBoundingClientRect().height;
                 const contentChildrenHeight = getChildNodesHeight(scrollContentElement.children);
                 if (containerHeight >= contentHeight &&
@@ -64,8 +63,8 @@ System.register("lib", [], function (exports_1, context_1) {
             unlockBodyScroll = () => {
                 const html = getHtml();
                 const body = getBody();
-                removeStyleOverride(html, lockStyleHTML);
-                removeStyleOverride(body, lockStyleBody, getDynamicStyleOverrideToRemove(body), true);
+                removeStyleOverride(html);
+                removeStyleOverride(body);
             };
             lockScrollElement = (element) => {
                 addStyleOverride(element, scrollYContentLockStyle);
@@ -74,54 +73,37 @@ System.register("lib", [], function (exports_1, context_1) {
                 }
             };
             unlockScrollElement = (element) => {
-                removeStyleOverride(element, scrollYContentLockStyle);
+                removeStyleOverride(element);
                 unregisterLockIdOnElement(element);
                 if (isIOS) {
                     element.removeEventListener("touchmove", preventTouchmoveHandler);
                 }
             };
-            getDynamicStyleOverride = () => {
-                if (window.scrollY > 0) {
-                    return `margin-top:-${window.scrollY}px;`;
+            addStyleOverride = (element, styleOverride) => {
+                if (element.dataset[styleBackupDatasetName]) {
+                    return;
                 }
-                return `margin-top:0px;`;
+                element.dataset[styleBackupDatasetName] = '';
+                const currentStyle = element.getAttribute("style");
+                if (currentStyle === null) {
+                    return element.setAttribute("style", styleOverride);
+                }
+                if (currentStyle.length > 0) {
+                    element.dataset[styleBackupDatasetName] = currentStyle;
+                }
+                return element.setAttribute("style", `${currentStyle}${styleOverride}`);
             };
-            getDynamicStyleOverrideToRemove = (element) => {
-                return `margin-top:${element.style.marginTop};`;
-            };
-            addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
-                window.requestAnimationFrame(() => {
-                    const currentStyle = element.getAttribute("style");
-                    if (currentStyle === "" || currentStyle === null) {
-                        element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
-                        return;
-                    }
-                    if (currentStyle.indexOf(styleOverride) > -1) {
-                        return;
-                    }
-                    element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
-                });
-            };
-            removeStyleOverride = (element, styleOverride, dynamicStyleOverride = "", restoreScrollPosition = false) => {
+            removeStyleOverride = (element) => {
                 const currentStyle = element.getAttribute("style");
                 if (currentStyle == null) {
                     return;
                 }
-                window.requestAnimationFrame(() => {
-                    const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
-                    const newStyle = currentStyle.replace(new RegExp(`${styleOverride}${dynamicStyleOverride}` + "$"), "");
-                    if (newStyle === "") {
-                        console.log('remove style');
-                        element.removeAttribute("style");
-                    }
-                    else {
-                        console.log('remove style, keep unrelated style');
-                        element.setAttribute("style", newStyle);
-                    }
-                    if (restoreScrollPosition) {
-                        window.scrollTo(0, scrollPosition);
-                    }
-                });
+                const storedStyle = element.dataset[styleBackupDatasetName];
+                element.removeAttribute("data-".concat(styleBackupDatasetName));
+                if (!storedStyle) {
+                    return element.removeAttribute("style");
+                }
+                return element.setAttribute("style", storedStyle);
             };
             exports_1("registerLockIdOnBody", registerLockIdOnBody = (id) => {
                 const body = getBody();

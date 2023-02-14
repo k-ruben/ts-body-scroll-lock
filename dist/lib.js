@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerLockIdOnElement = exports.registerLockIdOnBody = exports.lockContentScrollElement = exports.getLockContentScrollResizeObserver = exports.lockBodyScroll = exports.removeScrollLock = exports.removeAllScrollLocks = void 0;
 var bodyDatasetName = "tsslock";
 var elementDatasetName = "tsslockid";
-var lockStyleHTML = ";overflow:hidden!important;";
-var lockStyleBody = ";position:fixed;";
+var styleBackupDatasetName = "tsslockstyle";
+var lockStyle = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
 var scrollYContentLockStyle = ";overflow-y:unset!important;";
 var removeAllScrollLocks = function (observer) {
     getAllLockedElements().forEach(function (element) {
@@ -31,8 +31,8 @@ exports.removeScrollLock = removeScrollLock;
 var lockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
-    addStyleOverride(html, lockStyleHTML);
-    addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+    addStyleOverride(html, lockStyle);
+    addStyleOverride(body, lockStyle);
 };
 exports.lockBodyScroll = lockBodyScroll;
 var getLockContentScrollResizeObserver = function () {
@@ -52,8 +52,7 @@ var getLockContentScrollResizeObserver = function () {
 };
 exports.getLockContentScrollResizeObserver = getLockContentScrollResizeObserver;
 var lockContentScrollElement = function (containerElement, scrollContentElement) {
-    var computerContainerStyle = getComputedStyle(containerElement);
-    var containerHeight = containerElement.getBoundingClientRect().height - parseFloat(computerContainerStyle.paddingTop) - parseFloat(computerContainerStyle.paddingBottom);
+    var containerHeight = containerElement.getBoundingClientRect().height;
     var contentHeight = scrollContentElement.getBoundingClientRect().height;
     var contentChildrenHeight = getChildNodesHeight(scrollContentElement.children);
     if (containerHeight >= contentHeight &&
@@ -65,8 +64,8 @@ exports.lockContentScrollElement = lockContentScrollElement;
 var unlockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
-    removeStyleOverride(html, lockStyleHTML);
-    removeStyleOverride(body, lockStyleBody, getDynamicStyleOverrideToRemove(body), true);
+    removeStyleOverride(html);
+    removeStyleOverride(body);
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);
@@ -75,57 +74,37 @@ var lockScrollElement = function (element) {
     }
 };
 var unlockScrollElement = function (element) {
-    removeStyleOverride(element, scrollYContentLockStyle);
+    removeStyleOverride(element);
     unregisterLockIdOnElement(element);
     if (isIOS) {
         element.removeEventListener("touchmove", preventTouchmoveHandler);
     }
 };
-var getDynamicStyleOverride = function () {
-    if (window.scrollY > 0) {
-        return "margin-top:-".concat(window.scrollY, "px;");
+var addStyleOverride = function (element, styleOverride) {
+    if (element.dataset[styleBackupDatasetName]) {
+        return;
     }
-    return "margin-top:0px;";
+    element.dataset[styleBackupDatasetName] = '';
+    var currentStyle = element.getAttribute("style");
+    if (currentStyle === null) {
+        return element.setAttribute("style", styleOverride);
+    }
+    if (currentStyle.length > 0) {
+        element.dataset[styleBackupDatasetName] = currentStyle;
+    }
+    return element.setAttribute("style", "".concat(currentStyle).concat(styleOverride));
 };
-var getDynamicStyleOverrideToRemove = function (element) {
-    return "margin-top:".concat(element.style.marginTop, ";");
-};
-var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
-    if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
-    window.requestAnimationFrame(function () {
-        var currentStyle = element.getAttribute("style");
-        if (currentStyle === "" || currentStyle === null) {
-            element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
-            return;
-        }
-        if (currentStyle.indexOf(styleOverride) > -1) {
-            return;
-        }
-        element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
-    });
-};
-var removeStyleOverride = function (element, styleOverride, dynamicStyleOverride, restoreScrollPosition) {
-    if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ""; }
-    if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
+var removeStyleOverride = function (element) {
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
     }
-    window.requestAnimationFrame(function () {
-        var scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
-        var newStyle = currentStyle.replace(new RegExp("".concat(styleOverride).concat(dynamicStyleOverride) + "$"), "");
-        if (newStyle === "") {
-            console.log('remove style');
-            element.removeAttribute("style");
-        }
-        else {
-            console.log('remove style, keep unrelated style');
-            element.setAttribute("style", newStyle);
-        }
-        if (restoreScrollPosition) {
-            window.scrollTo(0, scrollPosition);
-        }
-    });
+    var storedStyle = element.dataset[styleBackupDatasetName];
+    element.removeAttribute("data-".concat(styleBackupDatasetName));
+    if (!storedStyle) {
+        return element.removeAttribute("style");
+    }
+    return element.setAttribute("style", storedStyle);
 };
 var registerLockIdOnBody = function (id) {
     var body = getBody();
