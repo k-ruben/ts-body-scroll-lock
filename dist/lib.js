@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerLockIdOnElement = exports.registerLockIdOnBody = exports.lockContentScrollElement = exports.getLockContentScrollResizeObserver = exports.lockBodyScroll = exports.removeScrollLock = exports.removeAllScrollLocks = void 0;
 var bodyDatasetName = "tsslock";
 var elementDatasetName = "tsslockid";
-var lockStyleHTML = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
-var lockStyleBody = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;";
+var lockStyleHTML = ";overflow:hidden!important;";
+var lockStyleBody = ";position:fixed;";
 var scrollYContentLockStyle = ";overflow-y:unset!important;";
 var removeAllScrollLocks = function (observer) {
     getAllLockedElements().forEach(function (element) {
@@ -83,12 +83,12 @@ var unlockScrollElement = function (element) {
 };
 var getDynamicStyleOverride = function () {
     if (window.scrollY > 0) {
-        return "position:fixed;top:-".concat(window.scrollY, "px;");
+        return "top:-".concat(window.scrollY, "px;");
     }
-    return "position:fixed;top:0px;";
+    return "top:0px;";
 };
 var getDynamicStyleOverrideToRemove = function (element) {
-    return "position:fixed;top:".concat(element.style.top, ";");
+    return "top:".concat(element.style.top, ";");
 };
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }

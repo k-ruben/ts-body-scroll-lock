@@ -7,8 +7,8 @@ System.register("lib", [], function (exports_1, context_1) {
         execute: function () {
             bodyDatasetName = "tsslock";
             elementDatasetName = "tsslockid";
-            lockStyleHTML = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
-            lockStyleBody = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;";
+            lockStyleHTML = ";overflow:hidden!important;";
+            lockStyleBody = ";position:fixed;";
             scrollYContentLockStyle = ";overflow-y:unset!important;";
             exports_1("removeAllScrollLocks", removeAllScrollLocks = (observer) => {
                 getAllLockedElements().forEach((element) => {
@@ -82,12 +82,12 @@ System.register("lib", [], function (exports_1, context_1) {
             };
             getDynamicStyleOverride = () => {
                 if (window.scrollY > 0) {
-                    return `position:fixed;top:-${window.scrollY}px;`;
+                    return `top:-${window.scrollY}px;`;
                 }
-                return `position:fixed;top:0px;`;
+                return `top:0px;`;
             };
             getDynamicStyleOverrideToRemove = (element) => {
-                return `position:fixed;top:${element.style.top};`;
+                return `top:${element.style.top};`;
             };
             addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
                 window.requestAnimationFrame(() => {
