@@ -18,7 +18,7 @@ export const removeAllScrollLocks = (observer: ResizeObserver | null) => {
   getAllLockedElements().forEach((element) => {
     if (!(element instanceof HTMLElement)) {
       console.warn(
-        "removing scroll lock for Elment",
+        "removing scroll lock for Element",
         element,
         "is not possible, as it is not a HTMLElement"
       );
@@ -42,11 +42,13 @@ export const removeScrollLock = (element: HTMLElement, observer: ResizeObserver 
 };
 
 export const lockBodyScroll = () => {
-  const html = getHtml();
-  const body = getBody();
+  requestAnimationFrame(() => {
+    const html = getHtml();
+    const body = getBody();
 
-  addStyleOverride(html, lockStyleHTML);
-  addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+    addStyleOverride(html, lockStyleHTML);
+    addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+  })
 };
 
 export const getLockContentScrollResizeObserver = (): ResizeObserver | null => {
@@ -87,11 +89,13 @@ export const lockContentScrollElement = (
 };
 
 const unlockBodyScroll = () => {
-  const html = getHtml();
-  const body = getBody();
+  window.requestAnimationFrame(() => {
+    const html = getHtml();
+    const body = getBody();
 
-  removeStyleOverride(html);
-  removeStyleOverride(body, true);
+    removeStyleOverride(html);
+    removeStyleOverride(body, true);
+  })
 };
 
 const lockScrollElement = (element: HTMLElement) => {
@@ -126,45 +130,48 @@ const getDynamicStyleOverrideToRemove = (element: HTMLElement): string => {
  * Inline Style handler
  */
 const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
-  window.requestAnimationFrame(() => {
-    if (element.dataset[styleBackupDatasetName]) {
-      // style is already applied
-      return;
-    }
-    // set some style as default
-    element.dataset[styleBackupDatasetName] = '';
-    const currentStyle = element.getAttribute("style");
-    if (currentStyle === null) {
-      return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
-    }
-    if (currentStyle.length > 0) {
-      // store current inline style
-      element.dataset[styleBackupDatasetName] = currentStyle;
-    }
-    return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
-  })
+  console.log('AddStyleOverride');
+  if (element.dataset[styleBackupDatasetName]) {
+    // style is already applied
+    return;
+  }
+  // set some style as default
+  element.dataset[styleBackupDatasetName] = '';
+  const currentStyle = element.getAttribute("style");
+  if (currentStyle === null) {
+    console.log('set override style')
+    return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
+  }
+  if (currentStyle.length > 0) {
+    // store current inline style
+    element.dataset[styleBackupDatasetName] = currentStyle;
+  }
+  console.log('set current and override style')
+  return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
 };
 
 const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false) => {
-  window.requestAnimationFrame(() => {
-    const currentStyle = element.getAttribute("style");
-    if (currentStyle == null) {
-      return;
-    }
-    const storedStyle = element.dataset[styleBackupDatasetName];
-    element.removeAttribute("data-".concat(styleBackupDatasetName))
-    const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
-    if (!storedStyle) {
-      element.removeAttribute("style");
-    }
-    else {
-      element.setAttribute("style", storedStyle)
-    }
+  console.log('RemoveStyleOverride');
+  const currentStyle = element.getAttribute("style");
+  if (currentStyle == null) {
+    return;
+  }
+  const storedStyle = element.dataset[styleBackupDatasetName];
+  element.removeAttribute("data-".concat(styleBackupDatasetName))
+  const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
+  if (!storedStyle) {
+    console.log('remove override style');
+    element.removeAttribute("style");
+  }
+  else {
+    console.log('remove override style, keep stored style');
+    element.setAttribute("style", storedStyle)
+  }
 
-    if (restoreScrollPosition) {
-      window.scrollTo(0, scrollPosition);
-    }
-  })
+  if (restoreScrollPosition) {
+    console.log(`scroll to ${scrollPosition}`);
+    window.scrollTo(0, scrollPosition);
+  }
 };
 
 /**

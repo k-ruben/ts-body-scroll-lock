@@ -10,7 +10,7 @@ var scrollYContentLockStyle = ";overflow-y:unset!important;";
 var removeAllScrollLocks = function (observer) {
     getAllLockedElements().forEach(function (element) {
         if (!(element instanceof HTMLElement)) {
-            console.warn("removing scroll lock for Elment", element, "is not possible, as it is not a HTMLElement");
+            console.warn("removing scroll lock for Element", element, "is not possible, as it is not a HTMLElement");
             return;
         }
         (0, exports.removeScrollLock)(element, observer);
@@ -30,10 +30,12 @@ var removeScrollLock = function (element, observer) {
 };
 exports.removeScrollLock = removeScrollLock;
 var lockBodyScroll = function () {
-    var html = getHtml();
-    var body = getBody();
-    addStyleOverride(html, lockStyleHTML);
-    addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+    requestAnimationFrame(function () {
+        var html = getHtml();
+        var body = getBody();
+        addStyleOverride(html, lockStyleHTML);
+        addStyleOverride(body, lockStyleBody, getDynamicStyleOverride());
+    });
 };
 exports.lockBodyScroll = lockBodyScroll;
 var getLockContentScrollResizeObserver = function () {
@@ -64,10 +66,12 @@ var lockContentScrollElement = function (containerElement, scrollContentElement)
 };
 exports.lockContentScrollElement = lockContentScrollElement;
 var unlockBodyScroll = function () {
-    var html = getHtml();
-    var body = getBody();
-    removeStyleOverride(html);
-    removeStyleOverride(body, true);
+    window.requestAnimationFrame(function () {
+        var html = getHtml();
+        var body = getBody();
+        removeStyleOverride(html);
+        removeStyleOverride(body, true);
+    });
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);
@@ -93,21 +97,25 @@ var getDynamicStyleOverrideToRemove = function (element) {
 };
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
+    console.log('AddStyleOverride');
     if (element.dataset[styleBackupDatasetName]) {
         return;
     }
     element.dataset[styleBackupDatasetName] = '';
     var currentStyle = element.getAttribute("style");
     if (currentStyle === null) {
+        console.log('set override style');
         return element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
     }
     if (currentStyle.length > 0) {
         element.dataset[styleBackupDatasetName] = currentStyle;
     }
+    console.log('set current and override style');
     return element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
 };
 var removeStyleOverride = function (element, restoreScrollPosition) {
     if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
+    console.log('RemoveStyleOverride');
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
@@ -116,12 +124,15 @@ var removeStyleOverride = function (element, restoreScrollPosition) {
     element.removeAttribute("data-".concat(styleBackupDatasetName));
     var scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
     if (!storedStyle) {
+        console.log('remove override style');
         element.removeAttribute("style");
     }
     else {
+        console.log('remove override style, keep stored style');
         element.setAttribute("style", storedStyle);
     }
     if (restoreScrollPosition) {
+        console.log("scroll to ".concat(scrollPosition));
         window.scrollTo(0, scrollPosition);
     }
 };
