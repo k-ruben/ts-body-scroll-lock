@@ -126,6 +126,7 @@ const getDynamicStyleOverrideToRemove = (element: HTMLElement): string => {
  * Inline Style handler
  */
 const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
+  window.requestAnimationFrame(() => {
     if (element.dataset[styleBackupDatasetName]) {
       // style is already applied
       return;
@@ -141,26 +142,29 @@ const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicSt
       element.dataset[styleBackupDatasetName] = currentStyle;
     }
     return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
+  })
 };
 
 const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false) => {
-  const currentStyle = element.getAttribute("style");
-  if (currentStyle == null) {
-    return;
-  }
-  const storedStyle = element.dataset[styleBackupDatasetName];
-  element.removeAttribute("data-".concat(styleBackupDatasetName))
-  const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
-  if (!storedStyle) {
-    element.removeAttribute("style");
-  }
-  else {
-    element.setAttribute("style", storedStyle)
-  }
+  window.requestAnimationFrame(() => {
+    const currentStyle = element.getAttribute("style");
+    if (currentStyle == null) {
+      return;
+    }
+    const storedStyle = element.dataset[styleBackupDatasetName];
+    element.removeAttribute("data-".concat(styleBackupDatasetName))
+    const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
+    if (!storedStyle) {
+      element.removeAttribute("style");
+    }
+    else {
+      element.setAttribute("style", storedStyle)
+    }
 
-  if (restoreScrollPosition) {
-    window.scrollTo(0, scrollPosition);
-  }
+    if (restoreScrollPosition) {
+      window.scrollTo(0, scrollPosition);
+    }
+  })
 };
 
 /**
