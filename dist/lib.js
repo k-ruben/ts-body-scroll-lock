@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerLockIdOnElement = exports.registerLockIdOnBody = exports.lockContentScrollElement = exports.getLockContentScrollResizeObserver = exports.lockBodyScroll = exports.removeScrollLock = exports.removeAllScrollLocks = void 0;
 var bodyDatasetName = "tsslock";
 var elementDatasetName = "tsslockid";
-var lockStyle = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
+var lockStyleHTML = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
+var lockStyleBody = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;";
 var scrollYContentLockStyle = ";overflow-y:unset!important;";
 var removeAllScrollLocks = function (observer) {
     getAllLockedElements().forEach(function (element) {
@@ -30,8 +31,8 @@ exports.removeScrollLock = removeScrollLock;
 var lockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
-    addStyleOverride(html, lockStyle);
-    addStyleOverride(body, lockStyle, addDynamicStyleOverride());
+    addStyleOverride(html, lockStyleHTML);
+    addStyleOverride(body, lockStyleBody, addDynamicStyleOverride());
 };
 exports.lockBodyScroll = lockBodyScroll;
 var getLockContentScrollResizeObserver = function () {
@@ -63,8 +64,8 @@ exports.lockContentScrollElement = lockContentScrollElement;
 var unlockBodyScroll = function () {
     var html = getHtml();
     var body = getBody();
-    removeStyleOverride(html, lockStyle);
-    removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyle), true);
+    removeStyleOverride(html, lockStyleHTML);
+    removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyleBody), true);
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);

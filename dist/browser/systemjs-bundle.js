@@ -1,13 +1,14 @@
 System.register("lib", [], function (exports_1, context_1) {
     "use strict";
-    var bodyDatasetName, elementDatasetName, lockStyle, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, addDynamicStyleOverride, addDynamicStyleOverrideToRemove, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
+    var bodyDatasetName, elementDatasetName, lockStyleHTML, lockStyleBody, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, addDynamicStyleOverride, addDynamicStyleOverrideToRemove, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [],
         execute: function () {
             bodyDatasetName = "tsslock";
             elementDatasetName = "tsslockid";
-            lockStyle = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
+            lockStyleHTML = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;overflow:hidden!important;";
+            lockStyleBody = ";overscroll-behavior:none!important;-webkit-overflow-scrolling: auto!important;";
             scrollYContentLockStyle = ";overflow-y:unset!important;";
             exports_1("removeAllScrollLocks", removeAllScrollLocks = (observer) => {
                 getAllLockedElements().forEach((element) => {
@@ -32,8 +33,8 @@ System.register("lib", [], function (exports_1, context_1) {
             exports_1("lockBodyScroll", lockBodyScroll = () => {
                 const html = getHtml();
                 const body = getBody();
-                addStyleOverride(html, lockStyle);
-                addStyleOverride(body, lockStyle, addDynamicStyleOverride());
+                addStyleOverride(html, lockStyleHTML);
+                addStyleOverride(body, lockStyleBody, addDynamicStyleOverride());
             });
             exports_1("getLockContentScrollResizeObserver", getLockContentScrollResizeObserver = () => {
                 if (!document) {
@@ -62,8 +63,8 @@ System.register("lib", [], function (exports_1, context_1) {
             unlockBodyScroll = () => {
                 const html = getHtml();
                 const body = getBody();
-                removeStyleOverride(html, lockStyle);
-                removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyle), true);
+                removeStyleOverride(html, lockStyleHTML);
+                removeStyleOverride(body, addDynamicStyleOverrideToRemove(body, lockStyleBody), true);
             };
             lockScrollElement = (element) => {
                 addStyleOverride(element, scrollYContentLockStyle);
