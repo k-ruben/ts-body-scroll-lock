@@ -1,6 +1,6 @@
 System.register("lib", [], function (exports_1, context_1) {
     "use strict";
-    var bodyDatasetName, elementDatasetName, styleBackupDatasetName, lockStyleHTML, lockStyleBody, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, getDynamicStyleOverride, getDynamicStyleOverrideToRemove, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
+    var bodyDatasetName, elementDatasetName, styleBackupDatasetName, lockStyleHTML, lockStyleBody, scrollYContentLockStyle, removeAllScrollLocks, removeScrollLock, lockBodyScroll, getLockContentScrollResizeObserver, lockContentScrollElement, unlockBodyScroll, lockScrollElement, unlockScrollElement, getDynamicStyleOverride, addStyleOverride, removeStyleOverride, registerLockIdOnBody, unregisterLockIdOnBody, registerLockIdOnElement, getElementLockId, getAllLockedElements, hasActiveScrollLocks, unregisterLockIdOnElement, getBody, getHtml, getElement, preventTouchmoveHandler, getChildNodesHeight, isIOS;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [],
@@ -91,17 +91,14 @@ System.register("lib", [], function (exports_1, context_1) {
                 }
                 return `margin-top:0px;`;
             };
-            getDynamicStyleOverrideToRemove = (element) => {
-                return `margin-top:${element.style.marginTop};`;
-            };
             addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
-                console.log('AddStyleOverride');
+                console.log(`Method: AddStyleOverride: ${element.localName}, ${element.className}`);
                 if (element.dataset[styleBackupDatasetName]) {
                     return;
                 }
                 element.dataset[styleBackupDatasetName] = '';
                 const currentStyle = element.getAttribute("style");
-                if (currentStyle === null) {
+                if (currentStyle === null || currentStyle === '') {
                     console.log('set override style');
                     return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
                 }
@@ -112,7 +109,7 @@ System.register("lib", [], function (exports_1, context_1) {
                 return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
             };
             removeStyleOverride = (element, restoreScrollPosition = false) => {
-                console.log('RemoveStyleOverride');
+                console.log(`Method: removeStyleOverride ${element.localName}, ${element.className}`);
                 const currentStyle = element.getAttribute("style");
                 if (currentStyle == null) {
                     return;
@@ -121,7 +118,7 @@ System.register("lib", [], function (exports_1, context_1) {
                 element.removeAttribute("data-".concat(styleBackupDatasetName));
                 const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
                 if (!storedStyle) {
-                    console.log('remove override style');
+                    console.log('remove style');
                     element.removeAttribute("style");
                 }
                 else {

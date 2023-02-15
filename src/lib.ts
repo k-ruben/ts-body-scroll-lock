@@ -122,15 +122,11 @@ const getDynamicStyleOverride = (): string => {
   return `margin-top:0px;`;
 }
 
-const getDynamicStyleOverrideToRemove = (element: HTMLElement): string => {
-  return `margin-top:${element.style.marginTop};`;
-}
-
 /**
  * Inline Style handler
  */
 const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
-  console.log('AddStyleOverride');
+  console.log(`Method: AddStyleOverride: ${element.localName}, ${element.className}`);
   if (element.dataset[styleBackupDatasetName]) {
     // style is already applied
     return;
@@ -138,7 +134,7 @@ const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicSt
   // set some style as default
   element.dataset[styleBackupDatasetName] = '';
   const currentStyle = element.getAttribute("style");
-  if (currentStyle === null) {
+  if (currentStyle === null || currentStyle === '') {
     console.log('set override style')
     return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
   }
@@ -151,7 +147,7 @@ const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicSt
 };
 
 const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false) => {
-  console.log('RemoveStyleOverride');
+  console.log(`Method: removeStyleOverride ${element.localName}, ${element.className}`);
   const currentStyle = element.getAttribute("style");
   if (currentStyle == null) {
     return;
@@ -160,10 +156,9 @@ const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false
   element.removeAttribute("data-".concat(styleBackupDatasetName))
   const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
   if (!storedStyle) {
-    console.log('remove override style');
+    console.log('remove style');
     element.removeAttribute("style");
-  }
-  else {
+  } else {
     console.log('remove override style, keep stored style');
     element.setAttribute("style", storedStyle)
   }

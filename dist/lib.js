@@ -92,18 +92,15 @@ var getDynamicStyleOverride = function () {
     }
     return "margin-top:0px;";
 };
-var getDynamicStyleOverrideToRemove = function (element) {
-    return "margin-top:".concat(element.style.marginTop, ";");
-};
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
-    console.log('AddStyleOverride');
+    console.log("Method: AddStyleOverride: ".concat(element.localName, ", ").concat(element.className));
     if (element.dataset[styleBackupDatasetName]) {
         return;
     }
     element.dataset[styleBackupDatasetName] = '';
     var currentStyle = element.getAttribute("style");
-    if (currentStyle === null) {
+    if (currentStyle === null || currentStyle === '') {
         console.log('set override style');
         return element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
     }
@@ -115,7 +112,7 @@ var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
 };
 var removeStyleOverride = function (element, restoreScrollPosition) {
     if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
-    console.log('RemoveStyleOverride');
+    console.log("Method: removeStyleOverride ".concat(element.localName, ", ").concat(element.className));
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
@@ -124,7 +121,7 @@ var removeStyleOverride = function (element, restoreScrollPosition) {
     element.removeAttribute("data-".concat(styleBackupDatasetName));
     var scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
     if (!storedStyle) {
-        console.log('remove override style');
+        console.log('remove style');
         element.removeAttribute("style");
     }
     else {
