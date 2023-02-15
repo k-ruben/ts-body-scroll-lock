@@ -15,30 +15,34 @@ const scrollYContentLockStyle = ";overflow-y:unset!important;";
  * Lock Handler
  */
 export const removeAllScrollLocks = (observer: ResizeObserver | null) => {
-  getAllLockedElements().forEach((element) => {
-    if (!(element instanceof HTMLElement)) {
-      console.warn(
-        "removing scroll lock for Element",
-        element,
-        "is not possible, as it is not a HTMLElement"
-      );
-      return;
-    }
-    removeScrollLock(element, observer);
-  });
-  unlockBodyScroll();
+  window.requestAnimationFrame(() => {
+    getAllLockedElements().forEach((element) => {
+      if (!(element instanceof HTMLElement)) {
+        console.warn(
+            "removing scroll lock for Element",
+            element,
+            "is not possible, as it is not a HTMLElement"
+        );
+        return;
+      }
+      removeScrollLock(element, observer);
+    });
+    unlockBodyScroll();
+  })
 };
 
 export const removeScrollLock = (element: HTMLElement, observer: ResizeObserver | null) => {
-  unregisterLockIdOnBody(element);
-  unlockScrollElement(element);
-  if (observer) {
-    observer.disconnect();
-  }
+  window.requestAnimationFrame(() => {
+    unregisterLockIdOnBody(element);
+    unlockScrollElement(element);
+    if (observer) {
+      observer.disconnect();
+    }
 
-  if (!hasActiveScrollLocks()) {
-    unlockBodyScroll();
-  }
+    if (!hasActiveScrollLocks()) {
+      unlockBodyScroll();
+    }
+  })
 };
 
 export const lockBodyScroll = () => {
@@ -89,13 +93,11 @@ export const lockContentScrollElement = (
 };
 
 const unlockBodyScroll = () => {
-  window.requestAnimationFrame(() => {
     const html = getHtml();
     const body = getBody();
 
     removeStyleOverride(html);
     removeStyleOverride(body, true);
-  })
 };
 
 const lockScrollElement = (element: HTMLElement) => {
