@@ -8,29 +8,33 @@ var lockStyleHTML = ";overflow:hidden!important;";
 var lockStyleBody = ";position:fixed;";
 var scrollYContentLockStyle = ";overflow-y:unset!important;";
 var removeAllScrollLocks = function (observer) {
-    getAllLockedElements().forEach(function (element) {
-        if (!(element instanceof HTMLElement)) {
-            console.warn("removing scroll lock for Element", element, "is not possible, as it is not a HTMLElement");
-            return;
-        }
-        (0, exports.removeScrollLock)(element, observer);
+    window.requestAnimationFrame(function () {
+        getAllLockedElements().forEach(function (element) {
+            if (!(element instanceof HTMLElement)) {
+                console.warn("removing scroll lock for Element", element, "is not possible, as it is not a HTMLElement");
+                return;
+            }
+            (0, exports.removeScrollLock)(element, observer);
+        });
+        unlockBodyScroll();
     });
-    unlockBodyScroll();
 };
 exports.removeAllScrollLocks = removeAllScrollLocks;
 var removeScrollLock = function (element, observer) {
-    unregisterLockIdOnBody(element);
-    unlockScrollElement(element);
-    if (observer) {
-        observer.disconnect();
-    }
-    if (!hasActiveScrollLocks()) {
-        unlockBodyScroll();
-    }
+    window.requestAnimationFrame(function () {
+        unregisterLockIdOnBody(element);
+        unlockScrollElement(element);
+        if (observer) {
+            observer.disconnect();
+        }
+        if (!hasActiveScrollLocks()) {
+            unlockBodyScroll();
+        }
+    });
 };
 exports.removeScrollLock = removeScrollLock;
 var lockBodyScroll = function () {
-    requestAnimationFrame(function () {
+    window.requestAnimationFrame(function () {
         var html = getHtml();
         var body = getBody();
         addStyleOverride(html, lockStyleHTML);
@@ -66,12 +70,10 @@ var lockContentScrollElement = function (containerElement, scrollContentElement)
 };
 exports.lockContentScrollElement = lockContentScrollElement;
 var unlockBodyScroll = function () {
-    window.requestAnimationFrame(function () {
-        var html = getHtml();
-        var body = getBody();
-        removeStyleOverride(html);
-        removeStyleOverride(body, true);
-    });
+    var html = getHtml();
+    var body = getBody();
+    removeStyleOverride(html);
+    removeStyleOverride(body, true);
 };
 var lockScrollElement = function (element) {
     addStyleOverride(element, scrollYContentLockStyle);
@@ -94,25 +96,21 @@ var getDynamicStyleOverride = function () {
 };
 var addStyleOverride = function (element, styleOverride, dynamicStyleOverride) {
     if (dynamicStyleOverride === void 0) { dynamicStyleOverride = ''; }
-    console.log("Method: AddStyleOverride: ".concat(element.localName, ", ").concat(element.className));
     if (element.dataset[styleBackupDatasetName]) {
         return;
     }
     element.dataset[styleBackupDatasetName] = '';
     var currentStyle = element.getAttribute("style");
     if (currentStyle === null || currentStyle === '') {
-        console.log('set override style');
         return element.setAttribute("style", "".concat(styleOverride).concat(dynamicStyleOverride));
     }
     if (currentStyle.length > 0) {
         element.dataset[styleBackupDatasetName] = currentStyle;
     }
-    console.log('set current and override style');
     return element.setAttribute("style", "".concat(currentStyle).concat(styleOverride).concat(dynamicStyleOverride));
 };
 var removeStyleOverride = function (element, restoreScrollPosition) {
     if (restoreScrollPosition === void 0) { restoreScrollPosition = false; }
-    console.log("Method: removeStyleOverride ".concat(element.localName, ", ").concat(element.className));
     var currentStyle = element.getAttribute("style");
     if (currentStyle == null) {
         return;
@@ -121,15 +119,12 @@ var removeStyleOverride = function (element, restoreScrollPosition) {
     element.removeAttribute("data-".concat(styleBackupDatasetName));
     var scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
     if (!storedStyle) {
-        console.log('remove style');
         element.removeAttribute("style");
     }
     else {
-        console.log('remove override style, keep stored style');
         element.setAttribute("style", storedStyle);
     }
     if (restoreScrollPosition) {
-        console.log("scroll to ".concat(scrollPosition));
         window.scrollTo(0, scrollPosition);
     }
 };

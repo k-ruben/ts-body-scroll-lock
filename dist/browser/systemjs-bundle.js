@@ -12,27 +12,31 @@ System.register("lib", [], function (exports_1, context_1) {
             lockStyleBody = ";position:fixed;";
             scrollYContentLockStyle = ";overflow-y:unset!important;";
             exports_1("removeAllScrollLocks", removeAllScrollLocks = (observer) => {
-                getAllLockedElements().forEach((element) => {
-                    if (!(element instanceof HTMLElement)) {
-                        console.warn("removing scroll lock for Element", element, "is not possible, as it is not a HTMLElement");
-                        return;
-                    }
-                    removeScrollLock(element, observer);
+                window.requestAnimationFrame(() => {
+                    getAllLockedElements().forEach((element) => {
+                        if (!(element instanceof HTMLElement)) {
+                            console.warn("removing scroll lock for Element", element, "is not possible, as it is not a HTMLElement");
+                            return;
+                        }
+                        removeScrollLock(element, observer);
+                    });
+                    unlockBodyScroll();
                 });
-                unlockBodyScroll();
             });
             exports_1("removeScrollLock", removeScrollLock = (element, observer) => {
-                unregisterLockIdOnBody(element);
-                unlockScrollElement(element);
-                if (observer) {
-                    observer.disconnect();
-                }
-                if (!hasActiveScrollLocks()) {
-                    unlockBodyScroll();
-                }
+                window.requestAnimationFrame(() => {
+                    unregisterLockIdOnBody(element);
+                    unlockScrollElement(element);
+                    if (observer) {
+                        observer.disconnect();
+                    }
+                    if (!hasActiveScrollLocks()) {
+                        unlockBodyScroll();
+                    }
+                });
             });
             exports_1("lockBodyScroll", lockBodyScroll = () => {
-                requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
                     const html = getHtml();
                     const body = getBody();
                     addStyleOverride(html, lockStyleHTML);
@@ -65,12 +69,10 @@ System.register("lib", [], function (exports_1, context_1) {
                 }
             });
             unlockBodyScroll = () => {
-                window.requestAnimationFrame(() => {
-                    const html = getHtml();
-                    const body = getBody();
-                    removeStyleOverride(html);
-                    removeStyleOverride(body, true);
-                });
+                const html = getHtml();
+                const body = getBody();
+                removeStyleOverride(html);
+                removeStyleOverride(body, true);
             };
             lockScrollElement = (element) => {
                 addStyleOverride(element, scrollYContentLockStyle);
@@ -92,24 +94,20 @@ System.register("lib", [], function (exports_1, context_1) {
                 return `margin-top:0px;`;
             };
             addStyleOverride = (element, styleOverride, dynamicStyleOverride = '') => {
-                console.log(`Method: AddStyleOverride: ${element.localName}, ${element.className}`);
                 if (element.dataset[styleBackupDatasetName]) {
                     return;
                 }
                 element.dataset[styleBackupDatasetName] = '';
                 const currentStyle = element.getAttribute("style");
                 if (currentStyle === null || currentStyle === '') {
-                    console.log('set override style');
                     return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
                 }
                 if (currentStyle.length > 0) {
                     element.dataset[styleBackupDatasetName] = currentStyle;
                 }
-                console.log('set current and override style');
                 return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
             };
             removeStyleOverride = (element, restoreScrollPosition = false) => {
-                console.log(`Method: removeStyleOverride ${element.localName}, ${element.className}`);
                 const currentStyle = element.getAttribute("style");
                 if (currentStyle == null) {
                     return;
@@ -118,15 +116,12 @@ System.register("lib", [], function (exports_1, context_1) {
                 element.removeAttribute("data-".concat(styleBackupDatasetName));
                 const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
                 if (!storedStyle) {
-                    console.log('remove style');
                     element.removeAttribute("style");
                 }
                 else {
-                    console.log('remove override style, keep stored style');
                     element.setAttribute("style", storedStyle);
                 }
                 if (restoreScrollPosition) {
-                    console.log(`scroll to ${scrollPosition}`);
                     window.scrollTo(0, scrollPosition);
                 }
             };

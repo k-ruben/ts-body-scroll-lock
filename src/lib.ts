@@ -46,7 +46,7 @@ export const removeScrollLock = (element: HTMLElement, observer: ResizeObserver 
 };
 
 export const lockBodyScroll = () => {
-  requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
     const html = getHtml();
     const body = getBody();
 
@@ -128,7 +128,6 @@ const getDynamicStyleOverride = (): string => {
  * Inline Style handler
  */
 const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicStyleOverride = '') => {
-  console.log(`Method: AddStyleOverride: ${element.localName}, ${element.className}`);
   if (element.dataset[styleBackupDatasetName]) {
     // style is already applied
     return;
@@ -137,19 +136,16 @@ const addStyleOverride = (element: HTMLElement, styleOverride: string, dynamicSt
   element.dataset[styleBackupDatasetName] = '';
   const currentStyle = element.getAttribute("style");
   if (currentStyle === null || currentStyle === '') {
-    console.log('set override style')
     return element.setAttribute("style", `${styleOverride}${dynamicStyleOverride}`);
   }
   if (currentStyle.length > 0) {
     // store current inline style
     element.dataset[styleBackupDatasetName] = currentStyle;
   }
-  console.log('set current and override style')
   return element.setAttribute("style", `${currentStyle}${styleOverride}${dynamicStyleOverride}`);
 };
 
 const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false) => {
-  console.log(`Method: removeStyleOverride ${element.localName}, ${element.className}`);
   const currentStyle = element.getAttribute("style");
   if (currentStyle == null) {
     return;
@@ -158,15 +154,12 @@ const removeStyleOverride = (element: HTMLElement, restoreScrollPosition = false
   element.removeAttribute("data-".concat(styleBackupDatasetName))
   const scrollPosition = Number(element.style.marginTop.replace("px", "")) * -1;
   if (!storedStyle) {
-    console.log('remove style');
     element.removeAttribute("style");
   } else {
-    console.log('remove override style, keep stored style');
     element.setAttribute("style", storedStyle)
   }
 
   if (restoreScrollPosition) {
-    console.log(`scroll to ${scrollPosition}`);
     window.scrollTo(0, scrollPosition);
   }
 };
